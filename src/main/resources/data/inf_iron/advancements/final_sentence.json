@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:ferrum_of_execution"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.final_sentence.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.final_sentence.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_ferrum": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:ferrum_of_execution"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

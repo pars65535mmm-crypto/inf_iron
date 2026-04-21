@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:iron_compressed_18"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.ultimate_iron.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.ultimate_iron.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_ultimate_iron": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:iron_compressed_18"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

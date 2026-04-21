@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    " N ",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:iron_compressed_18"
+    },
+    "N": {
+      "item": "inf_iron:nether_star_compressed_9"
+    }
+  },
+  "result": {
+    "item": "inf_iron:atheos_core",
+    "count": 1
+  }
+}

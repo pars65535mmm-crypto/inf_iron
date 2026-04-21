@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SAS",
+    " H ",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:iron_compressed_18"
+    },
+    "A": {
+      "item": "inf_iron:omniversal_core"
+    },
+    "H": {
+      "item": "minecraft:heart_of_the_sea"
+    }
+  },
+  "result": {
+    "item": "inf_iron:staff_of_tornado",
+    "count": 1
+  }
+}

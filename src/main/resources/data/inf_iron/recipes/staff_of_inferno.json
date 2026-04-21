@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "TTT",
+    "TFT",
+    "TTT"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "F": {
+      "item": "inf_iron:staff_of_fissure"
+    }
+  },
+  "result": {
+    "item": "inf_iron:staff_of_inferno",
+    "count": 1
+  }
+}

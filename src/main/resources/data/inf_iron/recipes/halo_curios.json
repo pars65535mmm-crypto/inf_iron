@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "I I",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "inf_iron:iron_compressed_18"
+    }
+  },
+  "result": {
+    "item": "inf_iron:halo_curios"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:homing_bow"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.inevitable_end.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.inevitable_end.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_homing_bow": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:homing_bow"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

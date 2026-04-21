@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/stone_bricks",
+    "top": "minecraft:block/chiseled_stone_bricks",
+    "side": "minecraft:block/stone_bricks",
+    "sword": "minecraft:block/gold_block"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#side", "cullface": "down" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "north": { "texture": "#side", "cullface": "north" },
+        "south": { "texture": "#side", "cullface": "south" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" }
+      }
+    },
+    {
+      "from": [7.5, 16, 7.5],
+      "to": [8.5, 26, 8.5],
+      "faces": {
+        "north": { "texture": "#sword" },
+        "south": { "texture": "#sword" },
+        "west": { "texture": "#sword" },
+        "east": { "texture": "#sword" },
+        "up": { "texture": "#sword" }
+      }
+    },
+    {
+      "from": [6, 23, 7.5],
+      "to": [10, 24, 8.5],
+      "faces": {
+        "north": { "texture": "#sword" },
+        "south": { "texture": "#sword" },
+        "west": { "texture": "#sword" },
+        "east": { "texture": "#sword" },
+        "up": { "texture": "#sword" },
+        "down": { "texture": "#sword" }
+      }
+    }
+  ]
+}

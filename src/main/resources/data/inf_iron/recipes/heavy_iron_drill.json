@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    " C ",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "inf_iron:iron_compressed_6"
+    }
+  },
+  "result": {
+    "item": "inf_iron:heavy_iron_drill",
+    "count": 1
+  }
+}

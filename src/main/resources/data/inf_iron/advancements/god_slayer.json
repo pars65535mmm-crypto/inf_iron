@@ -1,0 +1,28 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:atheos_core"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.god_slayer.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.god_slayer.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "killed_atheos": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": {
+          "type": "inf_iron:atheos"
+        }
+      }
+    }
+  }
+}

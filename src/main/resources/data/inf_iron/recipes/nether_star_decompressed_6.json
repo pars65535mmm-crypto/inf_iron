@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "inf_iron:nether_star_compressed_6"
+    }
+  ],
+  "result": {
+    "item": "inf_iron:nether_star_compressed_5",
+    "count": 9
+  }
+}

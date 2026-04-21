@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "#O#",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:tnt"
+    },
+    "O": {
+      "item": "inf_iron:orichalcum"
+    }
+  },
+  "result": {
+    "item": "inf_iron:transcendental_core",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "O O",
+    "OOO",
+    "OOO"
+  ],
+  "key": {
+    "O": {
+      "item": "inf_iron:orichalcum"
+    }
+  },
+  "result": {
+    "item": "inf_iron:orichalcum_chestplate"
+  }
+}

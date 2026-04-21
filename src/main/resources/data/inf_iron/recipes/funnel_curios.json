@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S S",
+    "   ",
+    "S S"
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:nether_star_compressed_9"
+    }
+  },
+  "result": {
+    "item": "inf_iron:funnel_curios",
+    "count": 1
+  }
+}

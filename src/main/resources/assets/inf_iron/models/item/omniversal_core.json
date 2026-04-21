@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "inf_iron:item/omniversal_core"
+  }
+}

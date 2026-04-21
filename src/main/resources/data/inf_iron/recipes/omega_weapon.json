@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    " U ",
+    "   "
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:nether_star_compressed_9"
+    },
+    "U": {
+      "item": "inf_iron:ultima_weapon"
+    }
+  },
+  "result": {
+    "item": "inf_iron:omega_weapon",
+    "count": 1
+  }
+}

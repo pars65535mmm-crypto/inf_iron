@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:orichalcum"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.dreaming_metal.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.dreaming_metal.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:ultimate_iron",
+  "criteria": {
+    "has_orichalcum": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:orichalcum"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

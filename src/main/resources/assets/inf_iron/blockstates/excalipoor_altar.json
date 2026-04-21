@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "has_sword=true": { "model": "inf_iron:block/excalipoor_altar_stuck" },
+    "has_sword=false": { "model": "inf_iron:block/excalipoor_altar_empty" }
+  }
+}

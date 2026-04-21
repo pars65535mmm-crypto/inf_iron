@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "GGG",
+    "GGG"
+  ],
+  "key": {
+    "G": {
+      "item": "inf_iron:iron_generator_7"
+    }
+  },
+  "result": {
+    "item": "inf_iron:iron_generator_8",
+    "count": 1
+  }
+}

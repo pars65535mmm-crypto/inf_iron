@@ -1,0 +1,11 @@
+Compressed Infinity - Credits
+
+Mod Author: nekokumonekomoneko
+Development Support: Antigravity (Gemini AI)
+
+Special Thanks:
+- Minecraft Forge Team for the modding framework.
+- The Minecraft modding community for various inspirations.
+
+This mod is licensed under the MIT License.
+See LICENSE.txt for details.

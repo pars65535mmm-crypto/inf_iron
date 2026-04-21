@@ -1,0 +1,32 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "minecraft:item/netherite_sword"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "inf_iron:mode": 0
+      },
+      "model": "minecraft:item/netherite_sword"
+    },
+    {
+      "predicate": {
+        "inf_iron:mode": 1
+      },
+      "model": "minecraft:item/netherite_axe"
+    },
+    {
+      "predicate": {
+        "inf_iron:mode": 2
+      },
+      "model": "minecraft:item/netherite_hoe"
+    },
+    {
+      "predicate": {
+        "inf_iron:mode": 3
+      },
+      "model": "minecraft:item/blaze_rod"
+    }
+  ]
+}

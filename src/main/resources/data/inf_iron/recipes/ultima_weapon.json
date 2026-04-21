@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    " C ",
+    " N "
+  ],
+  "key": {
+    "C": {
+      "item": "inf_iron:nether_star_compressed_3"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "result": {
+    "item": "inf_iron:ultima_weapon",
+    "count": 1
+  }
+}

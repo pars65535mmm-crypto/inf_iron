@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "ISI",
+    " I "
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:nether_star_compressed_9"
+    },
+    "I": {
+      "item": "inf_iron:iron_compressed_18"
+    }
+  },
+  "result": {
+    "item": "inf_iron:ferrum_of_execution"
+  }
+}

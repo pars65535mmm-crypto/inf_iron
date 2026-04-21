@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:veritas_curios"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.abyss_gaze.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.abyss_gaze.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_veritas": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:veritas_curios"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IEI",
+    "ONO",
+    "IEI"
+  ],
+  "key": {
+    "I": {
+      "item": "inf_iron:iron_compressed_3"
+    },
+    "E": {
+      "item": "minecraft:end_stone"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "N": {
+      "item": "inf_iron:nether_star_compressed_9"
+    }
+  },
+  "result": {
+    "item": "inf_iron:infinity_ring",
+    "count": 1
+  }
+}

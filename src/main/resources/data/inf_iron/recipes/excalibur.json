@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "NEN",
+    "NNN"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "E": {
+      "item": "inf_iron:excalipoor"
+    }
+  },
+  "result": {
+    "item": "inf_iron:excalibur",
+    "count": 1
+  }
+}

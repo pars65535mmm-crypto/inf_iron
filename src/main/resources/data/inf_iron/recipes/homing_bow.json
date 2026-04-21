@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " IX",
+    "I X",
+    " IX"
+  ],
+  "key": {
+    "I": {
+      "item": "inf_iron:iron_compressed_18"
+    },
+    "X": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "inf_iron:homing_bow"
+  }
+}

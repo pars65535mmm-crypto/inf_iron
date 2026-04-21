@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SAS",
+    " N ",
+    " D "
+  ],
+  "key": {
+    "S": {
+      "item": "inf_iron:iron_compressed_18"
+    },
+    "A": {
+      "item": "inf_iron:omniversal_core"
+    },
+    "N": {
+      "item": "inf_iron:nether_star_compressed_9"
+    },
+    "D": {
+      "item": "minecraft:dragon_egg"
+    }
+  },
+  "result": {
+    "item": "inf_iron:staff_of_ultima",
+    "count": 1
+  }
+}

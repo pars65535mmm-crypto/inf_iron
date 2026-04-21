@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OOO",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "O": {
+      "item": "inf_iron:orichalcum"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "inf_iron:orichalcum_paxel"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:funnel_curios"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.wings_destruction.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.wings_destruction.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_funnel": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:funnel_curios"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

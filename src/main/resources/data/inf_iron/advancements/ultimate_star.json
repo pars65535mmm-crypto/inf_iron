@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "inf_iron:nether_star_compressed_9"
+    },
+    "title": {
+      "translate": "advancement.inf_iron.ultimate_star.title"
+    },
+    "description": {
+      "translate": "advancement.inf_iron.ultimate_star.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "inf_iron:root",
+  "criteria": {
+    "has_ultimate_star": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "inf_iron:nether_star_compressed_9"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
