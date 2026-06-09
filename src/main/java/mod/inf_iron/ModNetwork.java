@@ -20,5 +20,6 @@ public class ModNetwork {
         int id = 0;
         CHANNEL.registerMessage(id++, AbilityPacket.class, AbilityPacket::encode, AbilityPacket::new, AbilityPacket::handle);
         CHANNEL.registerMessage(id++, PaxelRadiusPacket.class, PaxelRadiusPacket::encode, PaxelRadiusPacket::new, PaxelRadiusPacket::handle);
+        CHANNEL.registerMessage(id++, ExpToolSkillPacket.class, ExpToolSkillPacket::encode, ExpToolSkillPacket::new, ExpToolSkillPacket::handle);
     }
 }

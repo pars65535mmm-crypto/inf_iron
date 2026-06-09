@@ -30,10 +30,16 @@ public class ModEvents {
     // --- Eternal Armor / Halo / Orichalcum: 完全無敵 (全ダメージソース無効化) ---
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
-        if (event.getEntity() instanceof Player player) {
+        LivingEntity victim = event.getEntity();
+        if (ExpToolExecutionContext.isAnnihilationTarget(victim)) {
+            if (event.getAmount() <= 0.0F) {
+                event.setCanceled(true);
+            }
+            return;
+        }
+        if (victim instanceof Player player) {
             if (isWearingFullEternalArmor(player) || hasHaloEquipped(player) || isWearingFullOrichalcumArmor(player)) {
                 event.setCanceled(true);
-                // ヴォイドダメージ対策：奈落に落ちたら地上へ強制送還
                 if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
                     player.teleportTo(player.getX(), 100.0, player.getZ());
                 }
@@ -43,6 +49,9 @@ public class ModEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingDeath(LivingDeathEvent event) {
+        if (ExpToolExecutionContext.isAnnihilationTarget(event.getEntity())) {
+            return;
+        }
         if (event.getEntity() instanceof Player player) {
             if (isWearingFullEternalArmor(player) || hasHaloEquipped(player) || isWearingFullOrichalcumArmor(player)) {
                 event.setCanceled(true);
@@ -52,18 +61,31 @@ public class ModEvents {
         }
     }
 
-    // --- God Killer & Ultima Weapon: ダメージ処理 ---
-    @SubscribeEvent
+    // --- God Killer / ExpTool & Ultima Weapon: ダメージ処理 ---
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingHurt(LivingHurtEvent event) {
+        LivingEntity target = event.getEntity();
+        if (ExpToolExecutionContext.isAnnihilationTarget(target)) {
+            if (event.getAmount() <= 0.0F) {
+                event.setCanceled(true);
+                return;
+            }
+            event.setAmount(Float.MAX_VALUE);
+            return;
+        }
+
         if (event.getSource() != null) {
             Entity source = event.getSource().getDirectEntity();
             if (source instanceof Player player) {
                 ItemStack heldItem = player.getMainHandItem();
+                if (OrichalcumExpToolItem.isExpTool(heldItem)) {
+                    ExpToolExecutionContext.markForAnnihilation(target);
+                    ExpToolAnnihilator.annihilateSingle(player, target);
+                    event.setAmount(Float.MAX_VALUE);
+                    return;
+                }
                 if (heldItem.getItem() == ModItems.GOD_KILLER.get()) {
-                    LivingEntity target = event.getEntity();
-                    // 絶対消去
-                    target.discard();
-                    // 消去が効かない相手への最大ダメージ
+                    ExpToolAnnihilator.godKillerWipe(target);
                     event.setAmount(Float.MAX_VALUE);
                 } else if (heldItem.getItem() == ModItems.ULTIMA_WEAPON.get()) {
                     // アルテマウェポン：HP割合に応じたダメージ (最大255)
@@ -84,21 +106,21 @@ public class ModEvents {
         Player player = event.player;
         Level level = player.level();
 
-        // God Killer: クールダウン強制リセット & 範囲消去 & アイテムクールダウン抹消
         ItemStack mainHand = player.getMainHandItem();
+
+        // ExpTool: 神殺しの剣同等 — クールダウン抹消 + スイング中AoE処刑
+        if (OrichalcumExpToolItem.isExpTool(mainHand)) {
+            player.resetAttackStrengthTicker();
+            clearAllCooldowns(player);
+            if (player.swingTime > 0) {
+                ExpToolAnnihilator.annihilateAoE(player, level, 10.0D);
+            }
+        }
+
+        // God Killer: クールダウン強制リセット & 範囲消去
         if (mainHand.getItem() == ModItems.GOD_KILLER.get()) {
             player.resetAttackStrengthTicker();
-            
-            // アイテムクールダウン (ホットバーのグレーアウト) を全削除
-            player.getCooldowns().tick(); 
-            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                ItemStack invStack = player.getInventory().getItem(i);
-                if (!invStack.isEmpty()) {
-                    player.getCooldowns().removeCooldown(invStack.getItem());
-                }
-            }
-            
-            // 振っている最中に範囲消去を発動
+            clearAllCooldowns(player);
             if (player.swingTime > 0) {
                 GodKillerItem.performAoeWipe(player, level);
             }
@@ -229,11 +251,21 @@ public class ModEvents {
         return stack.getItem() instanceof OrichalcumArmorItem;
     }
 
-    // --- Omni Tool / Paxel: 岩盤破壊 & 超速採掘 ---
+    private static void clearAllCooldowns(Player player) {
+        player.getCooldowns().tick();
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack invStack = player.getInventory().getItem(i);
+            if (!invStack.isEmpty()) {
+                player.getCooldowns().removeCooldown(invStack.getItem());
+            }
+        }
+    }
+
+    // --- Omni Tool / Paxel: 超速採掘 ---
     @SubscribeEvent
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
         ItemStack heldItem = event.getEntity().getMainHandItem();
-        if (heldItem.getItem() == ModItems.OMNI_TOOL.get() || heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get() || heldItem.getItem() == ModItems.ORICHALCUM_EXPTOOL.get()) {
+        if (heldItem.getItem() == ModItems.OMNI_TOOL.get() || heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get()) {
             event.setNewSpeed(Float.MAX_VALUE);
         }
     }
@@ -244,21 +276,16 @@ public class ModEvents {
         Player player = event.getPlayer();
         ItemStack heldItem = player.getMainHandItem();
         
-        // God Killer または Omni Tool または Paxel または ExpTool での岩盤破壊
-        if (heldItem.getItem() == ModItems.OMNI_TOOL.get() || heldItem.getItem() == ModItems.GOD_KILLER.get() || heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get() || heldItem.getItem() == ModItems.ORICHALCUM_EXPTOOL.get()) {
+        if (heldItem.getItem() == ModItems.OMNI_TOOL.get() || heldItem.getItem() == ModItems.GOD_KILLER.get() || heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get()) {
             if (event.getState().getBlock() == Blocks.BEDROCK) {
-                // 岩盤破壊を許可
                 event.getLevel().setBlock(event.getPos(), Blocks.AIR.defaultBlockState(), 3);
             }
         }
 
-        // Paxel または ExpTool の 一括破壊処理
-        if (heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get() || heldItem.getItem() == ModItems.ORICHALCUM_EXPTOOL.get()) {
-            if (!player.isShiftKeyDown()) { 
+        if (heldItem.getItem() == ModItems.ORICHALCUM_PAXEL.get()) {
+            if (!player.isShiftKeyDown()) {
                 if (event.getLevel() instanceof Level level) {
-                    int radius = (heldItem.getItem() == ModItems.ORICHALCUM_EXPTOOL.get()) 
-                                 ? OrichalcumExpToolItem.getMiningRadius(heldItem) 
-                                 : OrichalcumPaxelItem.getMiningRadius(heldItem);
+                    int radius = OrichalcumPaxelItem.getMiningRadius(heldItem);
                     if (radius > 0) {
                         breakRadiusAsPaxel(level, event.getPos(), player, radius);
                     }

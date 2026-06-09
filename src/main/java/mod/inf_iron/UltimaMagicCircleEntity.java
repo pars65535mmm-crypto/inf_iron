@@ -26,7 +26,7 @@ import java.util.UUID;
 public class UltimaMagicCircleEntity extends Entity {
     public static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(UltimaMagicCircleEntity.class, EntityDataSerializers.INT);
     private UUID ownerUUID;
-    private static final int MAX_AGE = 200; // 10秒の予兆
+    private static final int MAX_AGE = 80; // 4秒の予兆に短縮
 
     public UltimaMagicCircleEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -54,23 +54,33 @@ public class UltimaMagicCircleEntity extends Entity {
             this.discard();
         } else {
             // 予兆演出
-            if (age % 20 == 0) {
+            // 予兆演出の強化
+            if (this.level() instanceof ServerLevel server) {
                 float progress = (float) age / MAX_AGE;
-                sendActionMessageToAll("§5§lULTIMA CHARGING: " + (int)(progress * 100) + "%");
-                
-                // 収束する光
-                if (this.level() instanceof ServerLevel server) {
+                if (age % 10 == 0) {
+                    sendActionMessageToAll("§5§lULTIMA CHARGING: " + (int)(progress * 100) + "%");
                     server.playSound(null, this.getX(), this.getY(), this.getZ(),
                             net.minecraft.sounds.SoundEvents.BEACON_AMBIENT,
                             net.minecraft.sounds.SoundSource.PLAYERS, 2.0f, 0.5f + progress * 1.5f);
                 }
-            }
-            
-            // 地面の揺れ演出（パーティクル）
-            if (age > MAX_AGE - 40) {
-                 if (this.level() instanceof ServerLevel server) {
-                     server.sendParticles(ParticleTypes.FLASH, this.getX(), this.getY(), this.getZ(), 5, 5, 2, 5, 0);
-                 }
+
+                // 上空から魔法陣へ収束する光の線
+                for (int i = 0; i < 3; i++) {
+                    double rx = (server.random.nextDouble() - 0.5) * 20;
+                    double rz = (server.random.nextDouble() - 0.5) * 20;
+                    server.sendParticles(ParticleTypes.END_ROD, this.getX() + rx, this.getY() + 20, this.getZ() + rz, 0, -rx/10, -2.0, -rz/10, 0.5);
+                }
+
+                // 周囲の敵を吸い寄せる微弱な引力とダメージ
+                AABB pullArea = this.getBoundingBox().inflate(15.0);
+                List<LivingEntity> nearby = server.getEntitiesOfClass(LivingEntity.class, pullArea);
+                for (LivingEntity e : nearby) {
+                    if (e.getUUID().equals(ownerUUID)) continue;
+                    net.minecraft.world.phys.Vec3 dir = this.position().subtract(e.position()).normalize().scale(0.2);
+                    e.setDeltaMovement(e.getDeltaMovement().add(dir));
+                    e.hurtMarked = true;
+                    if (age % 10 == 0) e.hurt(server.damageSources().magic(), 10.0f);
+                }
             }
         }
     }

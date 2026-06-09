@@ -145,7 +145,7 @@ public class ModItems {
                         () -> new OrichalcumPaxelItem(ModTiers.ORICHALCUM_TIER, 20.0f, 0, new Item.Properties().rarity(ESCHATON).fireResistant()));
 
         public static final RegistryObject<Item> ORICHALCUM_EXPTOOL = ITEMS.register("orichalcum_exptool",
-                        () -> new OrichalcumExpToolItem(ModTiers.ORICHALCUM_TIER, 20.0f, 0, new Item.Properties().rarity(ESCHATON).fireResistant()));
+                        () -> new OrichalcumExpToolItem(ModTiers.ORICHALCUM_TIER, 0, 0, new Item.Properties().rarity(ESCHATON).fireResistant()));
 
         public static final RegistryObject<Item> ORICHALCUM_HELMET = ITEMS.register("orichalcum_helmet",
                         () -> new OrichalcumArmorItem(ModArmorMaterial.ORICHALCUM, ArmorItem.Type.HELMET, new Item.Properties().rarity(ESCHATON).fireResistant()));
@@ -155,6 +155,10 @@ public class ModItems {
                         () -> new OrichalcumArmorItem(ModArmorMaterial.ORICHALCUM, ArmorItem.Type.LEGGINGS, new Item.Properties().rarity(ESCHATON).fireResistant()));
         public static final RegistryObject<Item> ORICHALCUM_BOOTS = ITEMS.register("orichalcum_boots",
                         () -> new OrichalcumArmorItem(ModArmorMaterial.ORICHALCUM, ArmorItem.Type.BOOTS, new Item.Properties().rarity(ESCHATON).fireResistant()));
+
+        // オリハルコン光輪
+        public static final RegistryObject<Item> ORICHALCUM_HALO_CURIOS = ITEMS.register("orichalcum_halo_curios",
+                        () -> new OrichalcumHaloCurioItem(new Item.Properties().rarity(ESCHATON).fireResistant()));
 
         // 裂核の杖 (Staff of Fissure)
         public static final RegistryObject<Item> STAFF_OF_FISSURE = ITEMS.register("staff_of_fissure",
@@ -236,6 +240,7 @@ public class ModItems {
                                                 output.accept(ORICHALCUM_CHESTPLATE.get());
                                                 output.accept(ORICHALCUM_LEGGINGS.get());
                                                 output.accept(ORICHALCUM_BOOTS.get());
+                                                output.accept(ORICHALCUM_HALO_CURIOS.get());
                                                 output.accept(ModBlocks.TRANSCENDENTAL_CORE.get());
                                         })
                                         .build());

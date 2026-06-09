@@ -28,6 +28,7 @@ public class ModClientEvents {
         event.enqueueWork(() -> {
             CuriosRendererRegistry.register(ModItems.HALO_CURIOS.get(), HaloCurioRenderer::new);
             CuriosRendererRegistry.register(ModItems.FUNNEL_CURIOS.get(), FunnelCurioRenderer::new);
+            CuriosRendererRegistry.register(ModItems.ORICHALCUM_HALO_CURIOS.get(), OrichalcumHaloCurioRenderer::new);
             
             // 変形武器のモデル切り替えプロパティ登録
             net.minecraft.client.renderer.item.ItemProperties.register(ModItems.FERRUM_OF_EXECUTION.get(), 

@@ -86,8 +86,9 @@ public class OrichalcumBladeItem extends SwordItem {
     }
 
     private void performReincarnationDiffusion(Level level, Player player) {
-        player.displayClientMessage(Component.literal("§b§l[輪廻・拡散] §r§f千の刃が悉くを断つ...！"), true);
+        player.displayClientMessage(Component.literal("§d§l[輪廻・拡散] §r§f千の刃が悉くを断つ...！"), true);
         level.playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.ENDER_DRAGON_FLAP, net.minecraft.sounds.SoundSource.PLAYERS, 3.0F, 2.0F);
+        level.playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL, net.minecraft.sounds.SoundSource.PLAYERS, 2.0F, 1.5F);
 
         // 半径64以内の敵全てに斬撃
         net.minecraft.world.phys.AABB area = player.getBoundingBox().inflate(64.0);
@@ -97,8 +98,16 @@ public class OrichalcumBladeItem extends SwordItem {
             for (LivingEntity target : enemies) {
                 if (target == player) continue;
                 
-                // それぞれの敵の位置に斬撃パーティクルと音
-                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK, target.getX(), target.getY() + 1.0, target.getZ(), 3, 0.5, 0.5, 0.5, 0.0);
+                // 刃が飛んでいくような演出
+                for (int j = 0; j < 5; j++) {
+                    double ox = (level.random.nextDouble() - 0.5) * 4;
+                    double oy = (level.random.nextDouble() - 0.5) * 4;
+                    double oz = (level.random.nextDouble() - 0.5) * 4;
+                    serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, target.getX() + ox, target.getY() + 1 + oy, target.getZ() + oz, 0, -ox/5, -oy/5, -oz/5, 0.5);
+                }
+
+                // 強力な斬撃パーティクル
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK, target.getX(), target.getY() + 1.0, target.getZ(), 10, 0.5, 0.5, 0.5, 0.0);
                 serverLevel.playSound(null, target.blockPosition(), net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_CRIT, net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 0.8f);
                 
                 executeTrueMurder(level, player, target);
@@ -109,15 +118,17 @@ public class OrichalcumBladeItem extends SwordItem {
     private void performSpiralConvergence(Level level, Player player) {
         player.displayClientMessage(Component.literal("§5§l[螺旋・収束・虚無・崩壊] §r§f深淵に平伏せよ...！"), true);
         
-        net.minecraft.world.phys.HitResult hitResult = player.pick(100.0D, 0.0F, false);
+        net.minecraft.world.phys.HitResult hitResult = player.pick(128.0D, 0.0F, false);
         net.minecraft.world.phys.Vec3 center = hitResult.getType() != net.minecraft.world.phys.HitResult.Type.MISS ? hitResult.getLocation() : player.getEyePosition().add(player.getLookAngle().scale(30.0D));
 
         level.playSound(null, center.x, center.y, center.z, net.minecraft.sounds.SoundEvents.PORTAL_TRIGGER, net.minecraft.sounds.SoundSource.PLAYERS, 5.0F, 0.5F);
+        level.playSound(null, center.x, center.y, center.z, net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE, net.minecraft.sounds.SoundSource.PLAYERS, 5.0F, 0.1F);
 
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // ブラックホール的エフェクト
-            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.REVERSE_PORTAL, center.x, center.y, center.z, 500, 2.0, 2.0, 2.0, 0.5);
-            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SONIC_BOOM, center.x, center.y, center.z, 2, 0.0, 0.0, 0.0, 0.0);
+            // ブラックホール的エフェクトの強化
+            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.REVERSE_PORTAL, center.x, center.y, center.z, 1500, 4.0, 4.0, 4.0, 0.1);
+            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SONIC_BOOM, center.x, center.y, center.z, 10, 1.0, 1.0, 1.0, 0.1);
+            serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE, center.x, center.y, center.z, 200, 2.0, 2.0, 2.0, 0.0);
             
             // 半径100以内の全エンティティを特異点に強制転移＆圧殺
             net.minecraft.world.phys.AABB area = player.getBoundingBox().inflate(100.0);
@@ -130,12 +141,13 @@ public class OrichalcumBladeItem extends SwordItem {
                 target.teleportTo(center.x, center.y, center.z);
                 
                 // 無限の斬撃
-                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK, target.getX(), target.getY() + 1.0, target.getZ(), 5, 0.5, 0.5, 0.5, 0.0);
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SWEEP_ATTACK, target.getX(), target.getY() + 1.0, target.getZ(), 15, 0.5, 0.5, 0.5, 0.0);
                 
                 executeTrueMurder(level, player, target);
             }
             // 崩壊音
             serverLevel.playSound(null, center.x, center.y, center.z, net.minecraft.sounds.SoundEvents.WITHER_DEATH, net.minecraft.sounds.SoundSource.PLAYERS, 10.0f, 0.1f);
+            serverLevel.playSound(null, center.x, center.y, center.z, net.minecraft.sounds.SoundEvents.END_PORTAL_SPAWN, net.minecraft.sounds.SoundSource.PLAYERS, 10.0f, 0.5f);
         }
     }
 

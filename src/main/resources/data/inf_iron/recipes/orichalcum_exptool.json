@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    " C ",
+    " B "
+  ],
+  "key": {
+    "P": {
+      "item": "inf_iron:orichalcum_paxel"
+    },
+    "C": {
+      "item": "inf_iron:transcendental_core"
+    },
+    "B": {
+      "item": "inf_iron:orichalcum_blade"
+    }
+  },
+  "result": {
+    "item": "inf_iron:orichalcum_exptool"
+  }
+}

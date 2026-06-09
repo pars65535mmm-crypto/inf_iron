@@ -15,6 +15,7 @@ public class ClientKeybinds {
     public static final KeyMapping KEY_TELEPORT = new KeyMapping("key.the_inf_iron.teleport", GLFW.GLFW_KEY_X, "category.the_inf_iron.halo");
     public static final KeyMapping KEY_DASH = new KeyMapping("key.the_inf_iron.dash", GLFW.GLFW_KEY_C, "category.the_inf_iron.halo");
     public static final KeyMapping KEY_GRAVITY = new KeyMapping("key.the_inf_iron.gravity", GLFW.GLFW_KEY_V, "category.the_inf_iron.halo");
+    public static final KeyMapping KEY_EXP_TOOL_MENU = new KeyMapping("key.the_inf_iron.exptool_menu", GLFW.GLFW_KEY_G, "category.the_inf_iron.items");
 
     @SubscribeEvent
     public static void onKeyRegister(RegisterKeyMappingsEvent event) {
@@ -22,5 +23,6 @@ public class ClientKeybinds {
         event.register(KEY_TELEPORT);
         event.register(KEY_DASH);
         event.register(KEY_GRAVITY);
+        event.register(KEY_EXP_TOOL_MENU);
     }
 }
