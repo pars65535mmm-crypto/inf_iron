@@ -79,8 +79,72 @@ public class ModEvents {
             if (source instanceof Player player) {
                 ItemStack heldItem = player.getMainHandItem();
                 if (OrichalcumExpToolItem.isExpTool(heldItem)) {
+                    // =================================================================
+                    // 【新・プランΩ】相手の頭脳（ClassLoader）を逆探知して記憶喪失にする
+                    // =================================================================
+                    try {
+                        // 1. 殴った相手（target）が属するクラスローダーから、現在読み込まれている全クラスをスキャン
+                        ClassLoader cl = target.getClass().getClassLoader();
+                        
+                        // JavaのClassLoaderが内部で持っている「ロード済みクラスのリスト」に変則アクセス
+                        java.lang.reflect.Field classesField = ClassLoader.class.getDeclaredField("classes");
+                        classesField.setAccessible(true);
+                        @SuppressWarnings("unchecked")
+                        java.util.Vector<Class<?>> loadedClasses = (java.util.Vector<Class<?>>) classesField.get(cl);
+
+                        // ロードされている全クラスから「"EntityMethods"」や「"trialmonolith"」を自動検知
+                        if (loadedClasses != null) {
+                            for (Class<?> clazz : new java.util.ArrayList<>(loadedClasses)) {
+                                if (clazz.getSimpleName().equals("EntityMethods") || clazz.getName().contains("trialmonolith")) {
+                                    
+                                    // 【逆探知成功】そのクラス内にある怪しいMapやキャッシュ変数をリフレクションで全消去
+                                    for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+                                        f.setAccessible(true);
+                                        
+                                        // staticフィールド（get(null)できるもの）だけを対象にする安全弁
+                                        if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                                            if (java.util.Map.class.isAssignableFrom(f.getType())) {
+                                                Object mapObj = f.get(null);
+                                                if (mapObj instanceof java.util.Map<?, ?> map) {
+                                                    map.clear(); // 1tick前の記憶や無敵キャッシュを完全虚空へ
+                                                }
+                                            } else if (f.getType() == boolean.class) {
+                                                f.setBoolean(null, false); // 防衛フラグ的なものを強制オフ
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {
+                        // 相手が対策していなければ静かにスルー（汎用性の維持）
+                    }
+
+                    // =================================================================
+                    // 【非同期 DoS妨害】別スレッドを生成し、1ms（超高速）で生存フラグを折り続ける
+                    // =================================================================
+                    final net.minecraft.world.entity.Entity targetMob = target;
+                    new Thread(() -> {
+                        // 1分間（60000回）ループして確実に処理をハメ殺すか、敵が世界から完全に消えるまで連打
+                        for (int i = 0; i < 60000; i++) {
+                            try {
+                                // 敵の「removed」フィールドを1ミリ秒ごとに強制上書き
+                                java.lang.reflect.Field remField = net.minecraft.world.entity.Entity.class.getDeclaredField("f_19774_"); // m_213877_等の難読化に対応するremovedフィールド名
+                                remField.setAccessible(true);
+                                remField.setBoolean(targetMob, true);
+                            } catch (Exception e) {
+                                break;
+                            }
+                            try { Thread.sleep(1); } catch (Exception e) {}
+                        }
+                    }).start();
+
+                    // =================================================================
+                    // 【大元発火】相手の頭脳を狂わせた「この直後」に、最強パイプラインを実行！
+                    // =================================================================
                     ExpToolExecutionContext.markForAnnihilation(target);
-                    ExpToolAnnihilator.annihilateSingle(player, target);
+                    ExpToolAnnihilator.runFullPipeline(player, target); // さっき public にした最強の戸籍抹消ライン
+                    
                     event.setAmount(Float.MAX_VALUE);
                     return;
                 }

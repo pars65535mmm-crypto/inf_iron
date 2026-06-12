@@ -6,7 +6,8 @@
   "mixins": [
     "LivingEntityMixin",
     "EntityMixin",
-    "SynchedEntityDataMixin"
+    "SynchedEntityDataMixin",
+    "EntityStorageMixin"
   ],
   "injectors": {
     "defaultRequire": 1

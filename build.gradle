@@ -177,17 +177,20 @@ tasks.named('processResources', ProcessResources).configure {
 tasks.named('jar', Jar).configure {
     manifest {
         attributes([
-                'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : mod_authors,
-                'Specification-Version'   : '1', // We are version 1 of ourselves
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            'Specification-Title'     : mod_id,
+            'Specification-Vendor'    : mod_authors,
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : project.name,
+            'Implementation-Version'  : project.jar.archiveVersion,
+            'Implementation-Vendor'   : mod_authors,
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            
+            // ⚠️ コアModと通常Modを両立させるための魔法の3行
+            'TransformingAllowed'     : 'true',
+            'Automatic-Module-Name'   : 'inf_iron',
+            'FMLServiceLaunchProvider': 'mod.inf_iron.InfIronTransformerService'
         ])
     }
-
-    // This is the preferred method to reobfuscate your jar file
     finalizedBy 'reobfJar'
 }
 
@@ -212,4 +215,53 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+
+// ⚠️ サブプロジェクト（core）をJavaプロジェクトとして成立させる設定
+project(':core') {
+    apply plugin: 'java' 
+
+    repositories {
+        // 1. まず標準のセントラル
+        mavenCentral()
+        
+        // 2. 【最重要】Forge公式の近代的な正しいMavenリポジトリURL（ここにModlauncher 10.0.9がいます）
+        maven { url = 'https://maven.minecraftforge.net/' }
+        
+        // 3. 【念のための防衛線】SpongePowered公式（MixinやModlauncherのミラーリポジトリ）
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    }
+    dependencies {
+        // トランスフォーマーのコンパイルに必要なModlauncherやASMなどのライブラリを登録
+        compileOnly 'cpw.mods:modlauncher:10.0.9'
+        compileOnly 'org.ow2.asm:asm:9.5'
+        compileOnly 'org.ow2.asm:asm-tree:9.5'
+        compileOnly 'com.google.guava:guava:32.1.2-jre'
+    }
+
+    // 以前のエラー原因だった jar タスクの定義
+    tasks.named('jar', Jar) {
+        manifest {
+            attributes([
+                'FMLServiceLaunchProvider': 'mod.inf_iron.InfIronTransformerService'
+            ])
+        }
+    }
+}
+
+// ⚠️ メイン（ルート）側のjar設定（これはこのままでOK）
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            'Specification-Title'     : mod_id,
+            'Specification-Vendor'    : mod_authors,
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : project.name,
+            'Implementation-Version'  : project.jar.archiveVersion,
+            'Implementation-Vendor'   : mod_authors,
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+    finalizedBy 'reobfJar'
 }

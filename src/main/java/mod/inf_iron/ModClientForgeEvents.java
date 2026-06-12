@@ -42,7 +42,7 @@ public class ModClientForgeEvents {
     public static void onRenderLiving(RenderLivingEvent.Post<?, ?> event) {
         if (event.getEntity() instanceof Player player) {
             if (isWearingFullOrichalcumArmor(player)) {
-                boolean hasHalo = top.theillusivec4.curios.api.CuriosApi.getCuriosHelper().findFirstCurio(player, stack -> stack.is(ModItems.ORICHALCUM_HALO_CURIOS.get())).isPresent();
+                boolean hasHalo = top.theillusivec4.curios.api.CuriosApi.getCuriosHelper().findFirstCurio(player, stack -> stack.is(ModItems.HALO_CURIOS.get())).isPresent();
                 if (!hasHalo) {
                     com.mojang.blaze3d.vertex.PoseStack poseStack = event.getPoseStack();
                     poseStack.pushPose();

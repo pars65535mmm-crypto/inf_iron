@@ -67,9 +67,6 @@ public final class ExpToolSpacetimeManager {
         entity.hasImpulse = false;
 
         if (entity instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 255));
-            living.addEffect(new MobEffectInstance(MobEffects.JUMP, 40, 250));
-            living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 40, 0));
 
             if (living instanceof Mob mob) {
                 mob.getNavigation().stop();

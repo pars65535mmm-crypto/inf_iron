@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.client.multiplayer.ClientLevel;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -51,42 +52,28 @@ public final class ExpToolAnnihilator {
     public static void statusEffectOverflow(LivingEntity target) {
         if (target == null || target.level().isClientSide) return;
         ExpToolExecutionContext.markForAnnihilation(target);
+        
+        // クラッシュの原因になるエフェクト全付与ループは完全廃止！
+        // 代わりにバニラの基本的な行動不能デバフだけを安全に付与
         int tick = 6000;
         int amp = 255;
-        for (MobEffect effect : ForgeRegistries.MOB_EFFECTS.getValues()) {
-            if (effect == MobEffects.HARM) continue;
-            try {
-                target.addEffect(new MobEffectInstance(effect, tick, amp, false, false, false));
-            } catch (Exception ignored) {}
-        }
-        for (int i = 0; i < 64; i++) {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, tick, amp, false, false, false));
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, tick, amp, false, false, false));
-            target.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, tick, amp, false, false, false));
-            target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, tick, amp, false, false, false));
-            target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, tick, amp, false, false, false));
-            target.addEffect(new MobEffectInstance(MobEffects.POISON, tick, amp, false, false, false));
-        }
+        target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, tick, amp, false, false, false));
+        target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, tick, amp, false, false, false));
+        
+        // 座標データを汚染しない安全なノイズ処理を実行
         corruptFieldsWithNoise(target);
     }
-
-    public static void spacetimeAnnihilate(Player attacker, LivingEntity target) {
+public static void spacetimeAnnihilate(Player attacker, LivingEntity target) {
         if (target == null || target == attacker) return;
 
-        // 1. 【スレ主の修正案】時空をロックする前に、まず登録リスト・メモリ・世界から完全にパージする
-        godKillerWipe(target);
-        removeFromEntitySections(target);
-        forceRemoveBypass(target);
+        // 【最優先】Mixinのロック対象として完全登録
+        ExpToolExecutionContext.markForAnnihilation(target);
 
-        // 2. 座標を世界の果て（NaN/虚無）へ送り飛ばして、あらゆるシステムTickから完全に隔離
-        target.setPos(Double.NaN, Double.NaN, Double.NaN);
-
-        // 3. その上で、残った魂や残像（パケット）を時空凍結で完全停止させる
-        ExpToolSpacetimeManager.lockSpacetime(target);
         try {
+            // 1. まず身ぐるみを剥ぎ、データを0にする
+            stripEquipment(target);
             forceHealthZero(target);
             statusEffectOverflow(target);
-            stripEquipment(target);
             bypassHurtKill(attacker, target);
 
             ExpToolExecutionContext.runAllowRemove(() -> {
@@ -95,32 +82,75 @@ public final class ExpToolAnnihilator {
                 target.kill();
             });
         } finally {
-            ExpToolSpacetimeManager.unlock(target);
+            // 2. 死亡イベントが走った瞬間に、サーバーの全名簿（異次元含む）から物理パージ
+            godKillerWipe(target);
+            removeFromEntitySections(target);
+            forceRemoveBypass(target);
+
             ExpToolExecutionContext.runAllowRemove(() -> {
                 target.discard();
                 target.remove(Entity.RemovalReason.DISCARDED);
                 target.kill();
                 GodReflector.forceRemove(target);
             });
-            ExpToolExecutionContext.unmark(target);
+            
+            // 全ディメンション（ハイパースペース等）から強制追放
+            if (target.level().getServer() != null) {
+                java.util.UUID targetUUID = target.getUUID();
+                for (ServerLevel serverLevel : target.level().getServer().getAllLevels()) {
+                    Entity dimensionTarget = serverLevel.getEntity(targetUUID);
+                    if (dimensionTarget != null) {
+                        serverLevel.getChunkSource().removeEntity(dimensionTarget);
+                        removeFromEntitySections(dimensionTarget);
+                    }
+                }
+            }
+
+            // 3. 【クライアント幽霊化も同時に爆破】
+
+            if (target.level() instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel) {
+            // クライアント世界（ClientLevel）に安全にキャストして、ID指定で名簿から直接パージ！
+            clientLevel.removeEntity(target.getId(), Entity.RemovalReason.DISCARDED);
+        } else {
+            // サーバー側などの場合は、バニラ共通Entityインスタンスの機能で安全に消去
+            target.remove(Entity.RemovalReason.DISCARDED);
+            try {
+                target.setRemoved(Entity.RemovalReason.DISCARDED);
+                target.level().broadcastEntityEvent(target, (byte) 3); // 死亡エフェクト強制トリガー
+            } catch (Exception ignored) {}
+        }
         }
     }
 
-    private static void runFullPipeline(Player attacker, Entity target) {
+    public static void runFullPipeline(Player attacker, Entity target) {
+        if (target == null) return;
+        wipeFromWorldRegistry(target);
+        shutdownTargetTransformer(target);
+        
+        
         ExpToolExecutionContext.markForAnnihilation(target);
 
-        // 1. 相手が生存偽装をする前に、まず世界の登録セクション・Lookupから強制削除（先手必勝）
-        godKillerWipe(target);
-        removeFromEntitySections(target);
+        // 1. 安全な座標のバックアップ（NaN汚染防止）
+        double px = target.getX();
+        double py = target.getY();
+        double pz = target.getZ();
+        if (Double.isNaN(px) || Double.isInfinite(px)) px = attacker.getX();
+        if (Double.isNaN(py) || Double.isInfinite(py)) py = attacker.getY();
+        if (Double.isNaN(pz) || Double.isInfinite(pz)) pz = attacker.getZ();
+        target.setPos(px, py, pz);
 
+        // 2. 【最優先】まず身ぐるみを剥ぎ、HPを内部データごと「0」に固定して一切の無敵化を叩き潰す
         if (target instanceof LivingEntity living) {
             stripEquipment(living);
             forceHealthZero(living);
             statusEffectOverflow(living);
+            // 3. 逃げる隙を与える前に、バニラの死亡判定（die）を強制的に踏ませてドロップを確定させる
             bypassHurtKill(attacker, living);
         }
 
-        // 2. 最後に残存データを完全に虚無（NaN）へバイパスして物理破壊
+        // 4. 死亡イベントが完全に終わった【この段階】で、初めて世界の全名簿から物理削除に入る
+        godKillerWipe(target);
+        removeFromEntitySections(target);
         forceRemoveBypass(target);
 
         ExpToolExecutionContext.runAllowRemove(() -> {
@@ -131,10 +161,34 @@ public final class ExpToolAnnihilator {
             }
         });
 
-        // ターゲットの座標を完全に消滅させ、システムに「存在しない」と確定させる
-        target.setPos(Double.NaN, Double.NaN, Double.NaN);
+        // 5. 【次元超越パージ】オーバーワールドだけでなく、マイクラサーバーに存在する「全ディメンション」の管理名簿からこのボスを抹殺する
+        if (target.level().getServer() != null) {
+            java.util.UUID targetUUID = target.getUUID();
+            // サーバー内のすべての世界（ポケットディメンションやハイパースペース含む）をループ
+            for (ServerLevel serverLevel : target.level().getServer().getAllLevels()) {
+                Entity dimensionTarget = serverLevel.getEntity(targetUUID);
+                if (dimensionTarget != null) {
+                    // 見つけ次第、その世界のチャンクソースから物理追放
+                    serverLevel.getChunkSource().removeEntity(dimensionTarget);
+                    // 異次元側のセクションからも徹底的に参照を抹消
+                    removeFromEntitySections(dimensionTarget);
+                }
+            }
+        }
+        
 
-        ExpToolExecutionContext.unmark(target);
+        if (target.level() instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel) {
+            // クライアント世界（ClientLevel）に安全にキャストして、ID指定で名簿から直接パージ！
+            clientLevel.removeEntity(target.getId(), Entity.RemovalReason.DISCARDED);
+        } else {
+            // サーバー側などの場合は、バニラ共通Entityインスタンスの機能で安全に消去
+            target.remove(Entity.RemovalReason.DISCARDED);
+            try {
+                target.setRemoved(Entity.RemovalReason.DISCARDED);
+                target.level().broadcastEntityEvent(target, (byte) 3); // 死亡エフェクト強制トリガー
+            } catch (Exception ignored) {}
+        }
+    
     }
 
     public static void godKillerWipe(Entity target) {
@@ -196,18 +250,32 @@ public final class ExpToolAnnihilator {
         }
     }
 
-    private static void forceRemoveBypass(Entity entity) {
+private static void forceRemoveBypass(Entity entity) {
         if (entity == null) return;
+
 
         GodReflector.forceRemove(entity);
 
         try {
-            GodReflector.setDirectFieldValue(entity, "removed", true);
-            GodReflector.setDirectFieldValue(entity, "removalReason", Entity.RemovalReason.DISCARDED);
+            // 中間のMojangマッピング名、SRG名、難読化名、全てを網羅して強制書き込み
+            for (String fieldName : new String[]{"removed", "f_19771_", "field_140511_c", "removalReason", "f_19773_"}) {
+                try {
+                    Field field = Entity.class.getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    if (field.getType() == boolean.class) {
+                        field.setBoolean(entity, true); // 消滅フラグを強制「真」固定
+                    } else if (field.getType() == Entity.RemovalReason.class) {
+                        field.set(entity, Entity.RemovalReason.DISCARDED); // 消滅理由を強制上書き
+                    }
+                } catch (Exception ignored) {}
+            }
+            
+
             GodReflector.setDirectFieldValue(entity, "isAlive", false);
+            GodReflector.setDirectFieldValue(entity, "deathTime", 20);
         } catch (Exception ignored) {}
 
-        entity.setPos(Double.NaN, Double.NaN, Double.NaN);
+        // 座標や移動を0にして完全に固定
         entity.setDeltaMovement(0, 0, 0);
         entity.hasImpulse = false;
         entity.setNoGravity(true);
@@ -287,6 +355,14 @@ public final class ExpToolAnnihilator {
         Class<?> clazz = obj.getClass();
         while (clazz != null && clazz != Object.class) {
             for (Field field : clazz.getDeclaredFields()) {
+                // 座標や移動に関連する、絶対にNaNにしてはいけないフィールド名を除外（セーフティ）
+                String fName = field.getName().toLowerCase();
+                if (fName.contains("position") || fName.contains("movement") || fName.contains("loc") 
+                    || fName.contains("pos") || fName.contains("bb") || fName.contains("box") 
+                    || fName.contains("field_140517_") || fName.contains("f_19794_") || fName.contains("f_19795_") || fName.contains("f_19796_")) {
+                    continue; 
+                }
+
                 try {
                     if (field.getType().isPrimitive()) {
                         field.setAccessible(true);
@@ -328,12 +404,111 @@ public final class ExpToolAnnihilator {
         }
     }
 
-    // SpacetimeManagerから呼ぶための公開ラッパー
     public static void forceHealthZeroPublic(LivingEntity living) {
         forceHealthZero(living);
     }
 
     public static void bypassHurtKillPublic(Player attacker, LivingEntity living) {
         bypassHurtKill(attacker, living);
+    }
+
+    private static void shutdownTargetTransformer(net.minecraft.world.entity.Entity target) {
+        if (target == null) return;
+        try {
+            String targetTargetPackage = target.getClass().getPackageName();
+            
+            String[] parts = targetTargetPackage.split("\\.");
+            String targetBase = parts.length > 2 ? parts[0] + "." + parts[1] + "." + parts[2] : targetTargetPackage;
+
+            // バニラやForge、1自身のMOD（inf_iron）の場合は、絶対に巻き込まないよう即座に保護
+            if (targetBase.startsWith("net.minecraft") || 
+                targetBase.startsWith("net.minecraftforge") || 
+                targetBase.startsWith("mod.inf_iron")) {
+                return;
+            }
+
+            // 2. ModLauncherのプラグインマップを引きずり出す
+            Field field = cpw.mods.modlauncher.Launcher.class.getDeclaredField("launchPlugins");
+            field.setAccessible(true);
+            Object pluginHandler = field.get(cpw.mods.modlauncher.Launcher.INSTANCE);
+            
+            Field pluginsField = pluginHandler.getClass().getDeclaredField("plugins");
+            pluginsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> map = (java.util.Map<String, Object>) pluginsField.get(pluginHandler);
+            
+            if (map != null) {
+                java.util.List<String> keys = new java.util.ArrayList<>(map.keySet());
+                for (String key : keys) {
+                    Object pluginInstance = map.get(key);
+                    if (pluginInstance == null) continue;
+
+                    // プラグインの実体クラスが、殴ったターゲットと同じベースパッケージに属しているか動的チェック！
+                    String pluginPackage = pluginInstance.getClass().getPackageName();
+                    if (pluginPackage.startsWith(targetBase) || pluginInstance.getClass().getName().contains(targetBase)) {
+                        // ターゲットのMODが仕込んだトランスフォーマーだけを「狙撃」して削除！！
+                        map.remove(key);
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // 安全第一
+        }
+    }
+
+
+    public static void wipeFromWorldRegistry(net.minecraft.world.entity.Entity target) {
+        if (target == null) return;
+        try {
+            net.minecraft.world.level.Level level = target.level();
+            
+            // サーバー側の世界（ServerLevel）の場合の処理
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                // ServerLevel が持つエンティティ管理システム（EntityManager）をリフレクションで強奪
+                Field entityManagerField = net.minecraft.server.level.ServerLevel.class.getDeclaredField("entityManager");
+                entityManagerField.setAccessible(true);
+                Object entityManager = entityManagerField.get(serverLevel);
+                
+                if (entityManager != null) {
+                    // EntityManager の中にある「index（名簿の実体）」を取得
+                    Field indexField = entityManager.getClass().getDeclaredField("index");
+                    indexField.setAccessible(true);
+                    Object transientEntityLookup = indexField.get(entityManager);
+                    
+                    if (transientEntityLookup != null) {
+                        // 名簿から直接、殴ったターゲットのIDを完全消去（remove）
+                        java.lang.reflect.Method removeMethod = transientEntityLookup.getClass().getDeclaredMethod("remove", net.minecraft.world.level.entity.EntityAccess.class);
+                        removeMethod.setAccessible(true);
+                        removeMethod.invoke(transientEntityLookup, target);
+                    }
+                }
+            }
+            
+            // クライアント側の世界（ClientLevel）の場合の処理
+            if (level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel) {
+                // クライアント側の名簿システム（EntityStorage）を強奪
+                Field entityStorageField = net.minecraft.client.multiplayer.ClientLevel.class.getDeclaredField("entityStorage");
+                entityStorageField.setAccessible(true);
+                Object entityStorage = entityStorageField.get(clientLevel);
+                
+                if (entityStorage != null) {
+                    Field indexField = entityStorage.getClass().getDeclaredField("idx"); // マッピング名に応じて調整
+                    indexField.setAccessible(true);
+                    Object idMap = indexField.get(entityStorage);
+                    
+
+if (level instanceof net.minecraft.client.multiplayer.ClientLevel) {
+                net.minecraft.client.multiplayer.ClientLevel cl = (net.minecraft.client.multiplayer.ClientLevel) level;
+                cl.removeEntity(target.getId(), net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);
+            }
+                }
+            }
+            
+            // 最終ダメ押し：バニラ標準のエンティティパージ関数も念のため同時発火
+            target.setRemoved(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);
+            
+        } catch (Exception ignored) {
+            // 他MODとの競合を避けるため、エラーは綺麗にスルー
+        }
     }
 }

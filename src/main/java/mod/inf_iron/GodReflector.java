@@ -75,7 +75,6 @@ public class GodReflector {
             setDirectFieldValue(entity, "removed", true);
             setDirectFieldValue(entity, "isAlive", false); // LivingEntity系
 
-            entity.setPos(Double.NaN, Double.NaN, Double.NaN);
             entity.setDeltaMovement(0, 0, 0);
             entity.hasImpulse = false;
             entity.setNoGravity(true);
